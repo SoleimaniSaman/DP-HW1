@@ -1,0 +1,228 @@
+\documentclass[12pt]{extarticle}
+\usepackage{amssymb}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+\usepackage{blindtext}
+\usepackage{geometry}
+\usepackage{graphicx}
+\graphicspath{{ims/}}
+\usepackage{hyperref}
+\usepackage{placeins}
+\usepackage{amsmath}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\geometry{
+	a4paper,
+	total={170mm,257mm},
+	left=30mm,
+	right=30mm,
+	top=20mm,
+}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+	backgroundcolor=\color{backcolour},   
+	commentstyle=\color{codegreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{codegray},
+	stringstyle=\color{codepurple},
+	basicstyle=\ttfamily\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2
+}
+\usepackage{dsfont}
+
+\lstset{style=mystyle}
+
+\title{\textbf{HW1-Report}}
+\author{Saman Soleimani 400206284}
+\date{}
+
+
+\begin{document}
+\maketitle{\textbf{Question 1:}}\\
+The attacker's knowledge can be modeled from a Bayesian perspective. The information the attacker possesses about the sensitive bits before encountering the differentially private sequence of bits represents the prior distribution. The likelihood is determined by the distribution specified by the differential privacy (DP) algorithm. Consequently, the attacker selects the sequence of bits with the highest probability in the posterior distribution. Since the bits are chosen independently, we can model the attacker's knowledge bit by bit.
+
+	\begin{align}
+		 \mathbb{E}[\# \text{corrects}(\tilde{x},x)] 
+		  &= \mathbb{E}[1_{\tilde{x}_i = x_i}] 
+		  = \sum_{i=1}^{n} \mathbb{E}[1_{\tilde{x}_i = x_i}] 
+		   \leq n \max_{i} \Pr(\tilde{x}_i = x_i)\nonumber\\
+		&\leq n \max_{i}\max_{b\in\{0,1\}} \Pr(x_i = b|A(x) = a)\nonumber 
+	\end{align}
+	\begin{equation}
+		\Rightarrow\quad\mathbb{E}[\# \text{corrects}(\tilde{x},x)] = \leq n \max_{i}\max_{b\in\{0,1\}} \Pr(x_i = b|A(x) = a)\label{eq:First}
+	\end{equation}
+	\begin{equation}
+	 \Pr(x_i = b|A(x) = a)
+	= \frac{\Pr(A(x) = a|x_i = b)\Pr(x_i = b)}{\Pr(A(x) = a|x_i = \bar{b})\Pr(x_i = \bar{b}) + \Pr(A(x) = a|x_i = b)\Pr(x_i = b)}\nonumber\\
+	\end{equation}\\
+		Because $x|x_i = b$  and  $x|x_i = \bar{b}$  are at least at a hamming distance of 1 and \\$ \Pr(x_i = b) = \Pr(x_i = \bar{b}) = \frac{1}{2}$(because x is selected uniformly):\\
+	\begin{equation}
+			\Pr(x_i = b|A(x) = a)
+			\le \frac{\Pr(A(x) = a|x_i = b)}{e^{-\epsilon}\Pr(A(x) = a|x_i = b)+ \Pr(A(x) = a|x_i = b)} = \frac{e^{\epsilon}}{1+e^{\epsilon}}\label{eq:Second}
+	\end{equation}
+	\ref{eq:First} and \ref{eq:Second} results:
+	\begin{equation}
+	\mathbb{E}[\# \text{errors}(\tilde{x},x)] = 1 - \mathbb{E}[\# \text{corrects}(\tilde{x},x)] \ge n(1-\frac{e^{\epsilon}}{1+e^{\epsilon}}) = \frac{n}{1+e^{\epsilon}}\nonumber
+	\end{equation}
+	\maketitle{\textbf{Question 2-a:}}\\
+I assumed a general condition where post-processing is random. Alternatively, you can consider deterministic post-processing as a specific case of random preprocessing, wherein the entire probability mass function is concentrated at a single point.\\
+We can consider our random model, which takes its input from a $(\varepsilon_, \delta)$-DP algorithm and then produces outputs based on the conditional probability introduced by the random model.\\
+Let $B: \chi \to \mathbb{R}$ be the $(\varepsilon, \delta)$-DP mechanism, and let $F: \mathbb{R} \to \mathbb{R}$ be the random post process.\\
+If $X$ is our data set and $X^{'}$ is its neighboring data set, I want to show that $H(X) = [B(X), F(B(X))] \in \mathbb{R}^2$ is $(\varepsilon, \delta)$-DP.\\
+Assume arbitrary event A in the Borel $\sigma$-algebra on $\mathbb{R}^2$. A can be defined by $A = A_1 \times A_2 = \{[x, y] \mid x \in A_1, y \in A_2\}$
+\begin{align*}
+\Pr[H(X) \in A] &= \Pr[B(X) \in A_1] \Pr[ F(a) \in A_2 \mid B(X) = a] \\
+&\leq (\Pr[B(X^{'}) \in A_1]e^{\varepsilon}+\delta)\Pr[ F(a) \in A_2 \mid B(X^{'}) = a]  \\
+&\leq e^{\varepsilon} \Pr[B(X^{'}) \in A_1]\Pr[ F(a) \in A_2 \mid B(X^{'}) = a]+\delta\\
+&=e^{\varepsilon} \Pr[B(X^{'}) \in A_1, F(B(X^{'})) \in A_2]+\delta\\
+& = e^{\varepsilon}\Pr[H(X^{'}) \in A]+\delta
+\end{align*}
+So, $H(X)$ is $(\varepsilon, \delta)$-DP.
+\\	\maketitle{\textbf{Question 2-b:}}\\
+Let $F: \chi \to \mathbb{R}$ be an $(\varepsilon_1, \delta_1)$-DP mechanism, and let $G: \mathbb{R} \times \chi \to \mathbb{R}$ with $G(x, \cdot)$ being $(\varepsilon_2, \delta_2)$-DP mechanism for any $x \in \mathbb{R}$.
+
+If $X$ is our data set and $X^{'}$ is its neighboring data set, I want to show that $H(X) = [F(X), G(F(X), X)] \in \mathbb{R}^2$ is $(\varepsilon_1 + \varepsilon_2, \delta_1 + \delta_2)$-DP.\\
+Assume arbitrary event A in the Borel $\sigma$-algebra on $\mathbb{R}^2$. A can be defined by $A = A_1 \times A_2 = \{[x, y] \mid x \in A_1, y \in A_2\}$
+\begin{align*}
+	\Pr[H(X) \in A] &= \Pr[F(X) \in A_1] \Pr[ G(a_1,X) \in A_2 \mid F(X) = a_1] \\
+	&\leq \Pr[F(X) \in A_1] \left( \min\{1, \Pr[ G(a_1,X^{'}) \in A_2 \mid F(X) = a_1]e^{\varepsilon_2}\} + \delta_2 \right) \\
+	&\leq \Pr[F(X) \in A_1] \min\{1, \Pr[ G(a_1,X^{'}) \in A_2 \mid F(X) = a_1]e^{\varepsilon_2}\} + \delta_2  \\
+	&\leq (\Pr[F(X^{'}) \in A_1]e^{\varepsilon_1}+\delta_1) \min\{1, \Pr[ G(a_1,X^{'}) \in A_2 \mid F(X^{'}) = a_1]e^{\varepsilon_2}\} + \delta_2  \\
+	&\leq \Pr[F(X^{'}) \in A_1]\Pr[ G(a_1,X^{'}) \in A_2 \mid F(X^{'}) = a_1]e^{\varepsilon_1+\varepsilon_2}+\delta_1+\delta_2\\
+	& = e^{\varepsilon_1+\varepsilon_2}\Pr[F(X^{'}) \in A_1, G(F(X^{'}),X^{'})\in A_2]+\delta_1+\delta_2\\
+	& =  e^{\varepsilon_1+\varepsilon_2}\Pr[H(X^{'}) \in A]+\delta_1+\delta_2
+\end{align*}
+So, $H(X)$ is $(\varepsilon_1 + \varepsilon_2, \delta_1 + \delta_2)$-DP.
+\\\\	\maketitle{\textbf{Question 3:}}\\The loss function is quadratic, and it is evident that it is also convex. So, if $\theta^{*}=\underset{\theta \in B_2(0, R)^d}{\mathrm{argmin}} L(\theta, X)$, $g^t = \nabla_\theta L(\theta^t, X)$ is the gradient, $\tilde{g}^{t}$ is an unbiased estimate of the gradient (similar to what we encounter in Noisy PGD), and $\eta$ is the learning rate:\\
+\begin{align*}
+	&\mathbb{E}[L(\theta^t, X) -  L(\theta^{*}, X)] = \mathbb{E}[L(\theta^t, X)] -  L(\theta^{*}, X) \\
+	&\le \mathbb{E}\left[\frac{1}{\eta}\langle \eta \tilde{g}^{t}, \theta^{t} - \theta^{*} \rangle\right] \\
+	&\leq \mathbb{E}\left[\frac{1}{2\eta}\left(\|\eta \tilde{g}^{t}\|^2 + \|\theta^{t} - \theta^{*}\|^2 - \|\theta^{t}-\eta \tilde{g}^{t} - \theta^{*}\|^2\right)\right] \\
+\end{align*}
+
+Because $\mathcal{C}$, the domain set of $\theta$ is convex, if $\tilde{u}^{t} = \theta^{t} - \eta \tilde{g}^{t}$, then this property holds for the projection function $\pi_\mathcal{C}(.)$ : $\|\pi_\mathcal{C}(\tilde{u}^{t})-y\|^2 \le \|\tilde{u}^{t}-y\|^2  ; \forall y \in \mathcal{C}$.
+
+\begin{align*}
+	\mathbb{E}[L(\theta^t, X)] -  L(\theta^{*}, X) &\leq \mathbb{E}\left[\frac{1}{2\eta}\left(\|\eta \tilde{g}^{t}\|^2 + \|\theta^{t} - \theta^{*}\|^2 - \|\pi_\mathcal{C}(\theta^{t}-\eta \tilde{g}^{t}) - \theta^{*}\|^2\right)\right]\\
+	& = \mathbb{E}\left[\frac{1}{2\eta}\left(\|\eta \tilde{g}^{t}\|^2 + \|\theta^{t} - \theta^{*}\|^2 - \|\theta^{t+1} - \theta^{*}\|^2\right)\right]\\
+	& = \frac{\eta}{2}\mathbb{E}[\|\tilde{g}^{t}\|^2]+\frac{1}{2\eta}\mathbb{E} [\|\theta^{t} - \theta^{*}\|^2-\|\theta^{t+1} - \theta^{*}\|^2]
+\end{align*}
+
+\begin{equation}
+	\Rightarrow\quad \mathbb{E}[L(\theta^t, X)] - L(\theta^{*}, X) \leq \frac{\eta}{2}\mathbb{E}[\|\tilde{g}^{t}\|^2] + \frac{1}{2\eta}\mathbb{E} [\|\theta^{t} - \theta^{*}\|^2 - \|\theta^{t+1} - \theta^{*}\|^2]\label{eq:Third}
+\end{equation}
+
+Due to the convexity of the loss landscape and the application of Jensen's inequality, we can infer:
+
+\begin{equation}
+	\mathbb{E}[L(\theta^\text{priv}, X)] = \mathbb{E}[L(\frac{1}{T} \sum_{t=0}^{T-1} \theta^t, X)] \le \frac{1}{T} \sum_{t=0}^{T-1}\mathbb{E}[L(\theta^t, X)] \label{eq:Four}
+\end{equation}
+
+References to equations \ref{eq:Third} and \ref{eq:Four} result in:
+
+\begin{align*}
+	\mathbb{E}[L(\theta^\text{priv}, X)] -  L(\theta^{*}, X) &\leq \frac{\eta}{2T}\sum_{t=0}^{T-1}\mathbb{E}[\|\tilde{g}^{t}\|^2] + \frac{1}{2\eta T}\sum_{t=0}^{T-1}\mathbb{E} [\|\theta^{t} - \theta^{*}\|^2 - \|\theta^{t+1} - \theta^{*}\|^2]\\
+	&\leq \frac{\eta}{2}\max_t \mathbb{E}[\|\tilde{g}^{t}\|^2] + \frac{1}{2\eta T}\mathbb{E} [\|\theta^{0}- \theta^{*}\|^2 - \|\theta^{T}- \theta^{*}\|^2]\\
+	&\leq \frac{\eta}{2}\max_t \mathbb{E}[\|\tilde{g}^{t}\|^2] + \frac{1}{2\eta T}\mathbb{E} [\|\theta^{0}-\theta^{T}\|^2]
+\end{align*}
+\begin{equation}
+	\Rightarrow\quad \mathbb{E}[L(\theta^\text{priv}, X)] -  L(\theta^{*}, X) \leq \frac{\eta}{2}\max_t \mathbb{E}[\|\tilde{g}^{t}\|^2] + \frac{1}{2\eta T}\mathbb{E} [\|\theta^{0}-\theta^{T}\|^2]\label{eq:Five}
+\end{equation}
+Because $\theta \in B_2(0, R)^d$, it follows that $\|\theta^{0}-\theta^{T}\|^2 \le 4R^2$. Let $\tilde{g}^{t} = {g}^{t} + Z$, where $Z$ is assumed to be a vector with entries sampled from $\mathcal{N}(0,\sigma^2)$. Therefore, $\mathbb{E}[|\tilde{g}^{t}|^2] = \mathbb{E}[\|g^{t}\|^2 + \|Z\|^2 + 2\langle g^{t},Z\rangle] = \|g^{t}\|^2 + \mathbb{E}[\|Z\|^2] \le G^2 + d\sigma^2$, where $G$ is the Lipschitzness of the loss function. So, these results and Equation \ref{eq:Five} yield:
+\begin{equation}
+	\mathbb{E}[L(\theta^\text{priv}, X)] -  L(\theta^{*}, X) \leq \frac{\eta}{2}( G^2 + d\sigma^2) + \frac{4R^2}{2\eta T}\label{eq:Six}
+\end{equation}
+$\ell_2$ sensitivity of $g^t = \nabla_\theta L(\theta^t, X)$ in each step is $\frac{2G}{n}$. It can be shown that the overall sensitivity of the entire function can be $\sqrt{T}\frac{2G}{n}$. This sensitivity, when multiplied by $\frac{\sqrt{2\ln\frac{1}{\delta}}}{\varepsilon}$ gives a lower bound to $\sigma$ of the noise:
+\begin{equation}
+\sigma\ge\frac{2G\sqrt{2T\ln\frac{1}{\delta}}}{n\varepsilon} \label{eq:Seven}
+\end{equation}
+\ref{eq:Six} and \ref{eq:Seven} gives new bound:
+\begin{align}
+	\mathbb{E}[L(\theta^\text{priv}, X)] -  L(\theta^{*}, X) &\leq \frac{\eta}{2}( G^2 + d\frac{8G^2T\ln\frac{1}{\delta}}{n^2\varepsilon^2}) + \frac{4R^2}{2\eta T}\nonumber \\ &= \frac{\eta G^2}{2}( 1 + d\frac{8T\ln\frac{1}{\delta}}{n^2\varepsilon^2}) + \frac{2R^2}{\eta T}\label{eq:Eight}
+\end{align}
+ If $\eta = \frac{\sqrt{T}}{RG\sqrt{1 + d\frac{8T\ln\frac{1}{\delta}}{n^2\varepsilon^2}}}$ : 
+ \begin{equation}
+ 		\mathbb{E}[L(\theta^\text{priv}, X)] -  L(\theta^{*}, X) \leq \frac{RG\sqrt{1 + d\frac{8T\ln\frac{1}{\delta}}{n^2\varepsilon^2}}}{\sqrt{T}}\label{eq:Nine}
+ \end{equation}
+The value of G should be determined based on the information provided by the problem, utilizing the Cauchy-Schwarz inequality.
+\begin{align*}
+	\|\nabla_\theta  l(f_\theta(x), y)\| &=\| \nabla_\theta (y - f_\theta(x))^2\|\\
+	& = \|\nabla_\theta (y - \theta^\top x)^2\| \\
+	&= \|2x(\theta^\top x -y)\|\\
+	&= |\theta^\top x -y| \|2x\|\\
+	&\le 2\sqrt{d}|\theta^\top x -y|\\
+	&\le 2\sqrt{d}(|\theta^\top x| +|y|)\\
+	&\le 2\sqrt{d}(\|\theta\|\|x\| +1)\\
+	&\le 2\sqrt{d}(R\sqrt{d} +1)
+ \end{align*}
+So, I set $G = 2\sqrt{d}(R\sqrt{d} + 1)$ and substitute this into \ref{eq:Nine}:
+ \begin{equation}
+	\mathbb{E}[L(\theta^\text{priv}, X)] -  L(\theta^{*}, X)
+	 \leq \frac{2R\sqrt{d}(R\sqrt{d} + 1)\sqrt{1 + d\frac{8T\ln\frac{1}{\delta}}{n^2\varepsilon^2}}}{\sqrt{T}} = \alpha\label{eq:Ten}
+\end{equation}
+Therefore, if $n\ge \sqrt{ d\frac{8T\ln\frac{1}{\delta}}{\varepsilon^2(\frac{T\alpha^2}{[(2R\sqrt{d})(R\sqrt{d} + 1)]^{2}}-1)}}$ The expected error will be lower than $\alpha$, and the algorithm will be $(\varepsilon, \delta)$-DP.
+\\\\	\maketitle{\textbf{Question 4:}}\\ The dataset \(X = \{x_1, x_2, \ldots, x_n\} \in \mathcal{X}\), and the outputs of the exponential mechanism belong to \(\mathcal{X} = \{1, 2, \ldots, N\}\). We should design \(q(y;X)\) such that it has a high value for \(y \in [\underset{i=1}{\overset{n}{\min}} x_i, \underset{i=1}{\overset{n}{\max}} x_i]\) because the event of the output of the exponential mechanism belonging to this set has a high probability. Based on \(n \geq \frac{C_1}{\varepsilon} \ln\left(\frac{|N|}{\beta}\right) + C_2\), this probability increases as \(n\) grows. Therefore, the score function should have the parameter \(n\) in it.\\
+Assume $A = \{y|y>\underset{i=1}{\overset{n}{\max}} x_i \quad \text{or} \quad y<\underset{i=1}{\overset{n}{\min}} x_i\}$, $B = \{y|q(y;X)=q_{max}\}$ ,Y is the output random variable of exponential mechanism and \(\Delta\) is the sensitivity of the score function:
+\begin{align*}
+	\Pr(A) = \Pr(Y \in A) &= \frac{\sum_{y\in A}\exp\left(\frac{\varepsilon q(y;X)}{2\Delta}\right)}{\sum_{y'\in \mathcal{X}}\exp\left(\frac{\varepsilon q(y';X)}{2\Delta}\right)} \\
+	&\le \frac{\Pr(Y \in A)}{\Pr(Y \in B)} \\
+	&= \frac{\sum_{y\in A}\exp\left(\frac{\varepsilon q(y;X)}{2\Delta}\right)}{\sum_{y'\in B}\exp\left(\frac{\varepsilon q(y';X)}{2\Delta}\right)} \\
+	&= \frac{\sum_{y\in A}\exp\left(\frac{\varepsilon q(y;X)}{2\Delta}\right)}{|B|\exp\left(\frac{\varepsilon q_{\text{max}}}{2\Delta}\right)} \\
+	&\le \frac{(N-1)\exp\left(\frac{\varepsilon q_{\text{max}A}}{2\Delta}\right)}{|B|\exp\left(\frac{\varepsilon q_{\text{max}}}{2\Delta}\right)} \quad \text{where } q_{\text{max}A} = \max_{y \in A} q(y;X) \\
+	&\le N\exp\left(\frac{\varepsilon (q_{\text{max}A}-q_{\text{max}})}{2\Delta}\right) = \beta \\
+\end{align*}
+So, if we fix the parameter \(\beta\), then \(\frac{\varepsilon (q_{\text{max}}-q_{\text{max}A})}{2\Delta} \ge \ln\left(\frac{N}{\beta}\right)\).
+Because it is evident that \(y_{\text{max}}\) is within the lower and upper bounds of the dataset, we can choose a selection for the median problem to design the score function. Based on \(\frac{\varepsilon (n-C_2)}{C_1} \ge \ln\left(\frac{N}{\beta}\right)\), the upper bound should not have \(N\), so I didn't use selection for the mean. I set the score function for our median problem as the number of data points lower than our value of interest minus the number of data points greater than the value of interest. We can describe this as:
+\[
+q(y; X) = -\sum_{i=1}^{n} \text{sign}(y - x_i),
+\quad \text{where } \text{sign}(z) =
+\begin{cases}
+	1 & \text{if } z > 0, \\
+	0 & \text{if } z = 0, \\
+	-1 & \text{if } z < 0.
+\end{cases}
+\]
+So, \(q_{\text{max}} = -\min_{y \in \mathcal{X}} \sum_{i=1}^{n} \text{sign}(y - x_i), q_{\text{max}A} = -n\).
+the sensitivity of the score function is 1. It can be some cases that \(q_{max}\) is not 0 so $q_{max}\in[-1,1]$. 
+\begin{align*}
+	 \frac{\varepsilon (q_{\text{max}}-q_{\text{max}A})}{2\Delta}
+	 &=\frac{\varepsilon (q_{\text{max}}+n)}{2}\\ 
+	 &\ge \frac{\varepsilon (n-1)}{2}\\
+\end{align*}
+So, if $\frac{\varepsilon (n-1)}{2}\ge \ln\left(\frac{N}{\beta}\right)$ is true then
+$\frac{\varepsilon (q_{\text{max}}-q_{\text{max}A})}{2\Delta} \ge \ln\left(\frac{N}{\beta}\right)$. So \(C_1 = 2\),\(C_2 = 1\).
+
+
+Now, we should prove the differential privacy of the exponential mechanism. For the proposed score function \(q(y; X) = -\sum_{i=1}^{n} \text{sign}(y - x_i)\), the sensitivity is \(\Delta = 1\). If we name \(H(X) = Y\) our exponential mechanism, for every neighboring dataset of $X$, $X^{'}$, that differs on the index i of the dataset  and an arbitrary event \(E\) in \(\sigma\)-algebra on \(\mathcal{X}\):
+
+\begin{align*}
+	\frac{\Pr(H(X) \in E)}{\Pr(H(X^{'}) \in E)} &= \frac{\sum_{y\in E}\exp\left(\frac{\varepsilon q(y;X)}{2\Delta}\right)\sum_{y'\in \mathcal{X}}\exp\left(\frac{\varepsilon q(y';X^{'})}{2\Delta}\right)}{\sum_{y\in E}\exp\left(\frac{\varepsilon q(y;X^{'})}{2\Delta}\right)\sum_{y'\in \mathcal{X}}\exp\left(\frac{\varepsilon q(y';X)}{2\Delta}\right)}\\
+	&\le \underset{y\in E}{\max} \, \underset{X,X'}{\max}\,\exp\left(\frac{\varepsilon (q(y;X)-q(y;,X'))}{2\Delta}\right)\,\underset{y'\in \mathcal{X}}{\max} \, \underset{X,X'}{\max}\,\exp\left(\frac{\varepsilon (q(y';X')-q(y';,X))}{2\Delta}\right)\\
+	&=\exp\left(\varepsilon\frac{ \underset{y\in E}{\max} \, \underset{X,X'}{\max}\,(q(y;X)-q(y;,X'))}{2\Delta}\right)\,\exp\left(\varepsilon\frac{ \underset{y'\in \mathcal{X}}{\max} \, \underset{X,X'}{\max}\,(q(y';X')-q(y';,X))}{2\Delta}\right)\\
+	&\le \exp\left(\varepsilon\frac{ \underset{y\in E}{\max} \, \underset{X,X'}{\max}\,|q(y;X)-q(y;,X')|}{2\Delta}\right)\,\exp\left(\varepsilon\frac{ \underset{y'\in \mathcal{X}}{\max} \, \underset{X,X'}{\max}\,|q(y';X')-q(y';,X)|}{2\Delta}\right)\\
+	&= \exp(\varepsilon/2)exp(\varepsilon/2)\\
+	&= \exp(\varepsilon)
+\end{align*}
+So, this algorithm is $\epsilon$-DP.
+
+
+
+	
+\end{document}
